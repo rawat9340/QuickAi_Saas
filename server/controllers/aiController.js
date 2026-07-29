@@ -19,7 +19,7 @@ const AI = new OpenAI({
   },
 });
 
-const MODEL = process.env.OPENROUTER_MODEL || "openai/gpt-4o";
+const MODEL = process.env.OPENROUTER_MODEL || "openrouter/free";
 
 export const generateArticle = async (req, res) => {
   try {
