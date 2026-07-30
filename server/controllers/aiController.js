@@ -9,16 +9,12 @@ const require = createRequire(import.meta.url);
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 
 const AI = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1",
-  defaultHeaders: {
-    "HTTP-Referer": process.env.FRONTEND_URL,
-    "X-Title": "QuickAI",
-  },
+  apiKey: process.env.GROQ_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1",
 });
 
-// Use the env var if set, otherwise fall back to a confirmed-free model on OpenRouter
-const MODEL = process.env.OPENROUTER_MODEL || "deepseek/deepseek-r1-0528:free";
+// Groq free models: llama-3.1-8b-instant, llama3-70b-8192, gemma2-9b-it
+const MODEL = process.env.GROQ_MODEL || "llama-3.1-8b-instant";
 
 export const generateArticle = async (req, res) => {
   try {
