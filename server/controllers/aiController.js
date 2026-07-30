@@ -17,8 +17,8 @@ const AI = new OpenAI({
   },
 });
 
-// Use the env var if set, otherwise fall back to a real free-tier model on OpenRouter
-const MODEL = process.env.OPENROUTER_MODEL || "mistralai/mistral-7b-instruct:free";
+// Use the env var if set, otherwise fall back to a confirmed-free model on OpenRouter
+const MODEL = process.env.OPENROUTER_MODEL || "deepseek/deepseek-r1-0528:free";
 
 export const generateArticle = async (req, res) => {
   try {
