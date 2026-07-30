@@ -126,12 +126,12 @@ export const generateImage = async (req, res) => {
       });
     }
 
-    if (plan !== "premium") {
-      return res.json({
-        success: false,
-        message: "This feature is only available for premium subscriptions.",
-      });
-    }
+    // if (plan !== "premium") {
+    //   return res.json({
+    //     success: false,
+    //     message: "This feature is only available for premium subscriptions.",
+    //   });
+    // }
 
     const formData = new FormData();
     formData.append("prompt", prompt);
