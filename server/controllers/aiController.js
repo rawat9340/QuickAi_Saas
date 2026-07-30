@@ -3,9 +3,7 @@ import sql from "../config/db.js";
 import { clerkClient } from "@clerk/express";
 import axios from "axios";
 import { v2 as cloudinary } from "cloudinary";
-import FormData from "form-data";
 import streamifier from "streamifier";
-import path from "path";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
@@ -19,7 +17,8 @@ const AI = new OpenAI({
   },
 });
 
-const MODEL = process.env.OPENROUTER_MODEL || "openrouter/free";
+// Use the env var if set, otherwise fall back to a real free-tier model on OpenRouter
+const MODEL = process.env.OPENROUTER_MODEL || "meta-llama/llama-3.1-8b-instruct:free";
 
 export const generateArticle = async (req, res) => {
   try {
@@ -47,7 +46,14 @@ export const generateArticle = async (req, res) => {
       max_tokens: length,
     });
 
-    const content = response.choices[0].message.content;
+    const content = response?.choices?.[0]?.message?.content;
+
+    if (!content) {
+      return res.status(500).json({
+        success: false,
+        message: "AI returned empty content. Check your OpenRouter model and API key.",
+      });
+    }
 
     await sql`
       INSERT INTO creations (user_id, prompt, content, type)
@@ -82,23 +88,26 @@ export const generateBlogTitle = async (req, res) => {
     }
 
     const response = await AI.chat.completions.create({
-  model: MODEL,
-  messages: [
-    {
-      role: "user",
-      content: prompt,
-    },
-  ],
-  temperature: 0.7,
-  max_tokens: 100,
-});
+      model: MODEL,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 100,
+    });
 
-console.log("========== OPENROUTER RESPONSE ==========");
-console.dir(response, { depth: null });
+    const content = response?.choices?.[0]?.message?.content;
 
-const content = response?.choices?.[0]?.message?.content;
-
-console.log("Generated content:", content);
+    if (!content) {
+      return res.status(500).json({
+        success: false,
+        message: "OpenRouter returned empty content.",
+        response,
+      });
+    }
 
     await sql`
       INSERT INTO creations (user_id, prompt, content, type)
@@ -122,7 +131,6 @@ export const generateImage = async (req, res) => {
   try {
     const { userId } = req.auth();
     const { prompt, publish } = req.body;
-    const plan = req.plan;
 
     if (!prompt || typeof prompt !== "string" || prompt.trim().length < 5) {
       return res.json({
@@ -131,31 +139,17 @@ export const generateImage = async (req, res) => {
       });
     }
 
-    // if (plan !== "premium") {
-    //   return res.json({
-    //     success: false,
-    //     message: "This feature is only available for premium subscriptions.",
-    //   });
-    // }
+    // Use Pollinations.ai — completely free, no API key required
+    const encodedPrompt = encodeURIComponent(prompt);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true&model=flux`;
 
-    const formData = new FormData();
-    formData.append("prompt", prompt);
+    // Fetch the image and upload to Cloudinary so we have a persistent URL
+    const imageRes = await axios.get(imageUrl, { responseType: "arraybuffer" });
+    const base64Image = `data:image/jpeg;base64,${Buffer.from(imageRes.data).toString("base64")}`;
 
-    const clipdropRes = await axios.post(
-      "https://clipdrop-api.co/text-to-image/v1",
-      formData,
-      {
-        headers: { "x-api-key": process.env.CLIPDROP_API_KEY },
-        responseType: "arraybuffer",
-      },
-    );
-
-    const base64Image = `data:image/png;base64,${Buffer.from(
-      clipdropRes.data,
-      "binary",
-    ).toString("base64")}`;
-
-    const cloudRes = await cloudinary.uploader.upload(base64Image);
+    const cloudRes = await cloudinary.uploader.upload(base64Image, {
+      folder: "ai-generated",
+    });
     const secure_url = cloudRes.secure_url;
 
     await sql`
@@ -321,7 +315,14 @@ ${pdfText}
       max_tokens: 1000,
     });
 
-    const content = response.choices[0].message.content;
+    const content = response?.choices?.[0]?.message?.content;
+
+    if (!content) {
+      return res.status(500).json({
+        success: false,
+        message: "AI returned empty content. Check your OpenRouter model and API key.",
+      });
+    }
 
     await sql`
       INSERT INTO creations (user_id, prompt, content, type)
