@@ -82,18 +82,23 @@ export const generateBlogTitle = async (req, res) => {
     }
 
     const response = await AI.chat.completions.create({
-      model: MODEL,
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 100,
-    });
+  model: MODEL,
+  messages: [
+    {
+      role: "user",
+      content: prompt,
+    },
+  ],
+  temperature: 0.7,
+  max_tokens: 100,
+});
 
-    const content = response.choices[0].message.content;
+console.log("========== OPENROUTER RESPONSE ==========");
+console.dir(response, { depth: null });
+
+const content = response?.choices?.[0]?.message?.content;
+
+console.log("Generated content:", content);
 
     await sql`
       INSERT INTO creations (user_id, prompt, content, type)
