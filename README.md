@@ -170,7 +170,7 @@ QuickAI uses **[Clerk](https://clerk.com/)** for user sign-up, login, and sessio
 ## 🌐 Deployment
 
 The live app is deployed on **[Vercel](https://vercel.com/)**:
-👉 [https://quickai-seven-phi.vercel.app/](https://quickai-seven-phi.vercel.app/)
+👉 [https://quickai-seven-phi.vercel.app/](https://quick-ai-saas-delta.vercel.app/)
 
 ---
 
@@ -188,5 +188,4 @@ This project is currently unlicensed. Feel free to add a license of your choice 
 
 ## 👤 Author
 
-**au8778166**
-GitHub: [@au8778166](https://github.com/au8778166)
+GitHub: [@rawat9340](https://github.com/rawat9340)
